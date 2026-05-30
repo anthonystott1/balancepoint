@@ -1,0 +1,132 @@
+{
+  "name": "Loan",
+  "type": "object",
+  "properties": {
+    "business_id": {
+      "type": "string",
+      "description": "ID of the business"
+    },
+    "borrower_name": {
+      "type": "string",
+      "description": "Name of the person or entity borrowing"
+    },
+    "borrower_email": {
+      "type": "string",
+      "description": "Contact email"
+    },
+    "borrower_phone": {
+      "type": "string",
+      "description": "Contact phone number"
+    },
+    "principal_amount": {
+      "type": "number",
+      "description": "Original loan amount"
+    },
+    "current_balance": {
+      "type": "number",
+      "description": "Remaining principal balance"
+    },
+    "interest_rate": {
+      "type": "number",
+      "description": "Annual interest rate (percentage)"
+    },
+    "term_months": {
+      "type": "number",
+      "description": "Total number of months for the loan"
+    },
+    "payment_frequency": {
+      "type": "string",
+      "enum": [
+        "weekly",
+        "bi-weekly",
+        "monthly"
+      ],
+      "default": "monthly",
+      "description": "How often payments are due"
+    },
+    "payment_amount": {
+      "type": "number",
+      "description": "Regular payment amount"
+    },
+    "interest_method": {
+      "type": "string",
+      "enum": [
+        "simple",
+        "amortized"
+      ],
+      "default": "amortized",
+      "description": "How interest is calculated"
+    },
+    "start_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date the loan started"
+    },
+    "next_payment_date": {
+      "type": "string",
+      "format": "date",
+      "description": "When the next payment is due"
+    },
+    "origination_fee": {
+      "type": "number",
+      "default": 0,
+      "description": "One-time fee charged at loan creation"
+    },
+    "late_fee_amount": {
+      "type": "number",
+      "default": 0,
+      "description": "Fee charged for late payments"
+    },
+    "grace_period_days": {
+      "type": "number",
+      "default": 0,
+      "description": "Days after due date before late fee applies"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "late",
+        "paid_off",
+        "defaulted"
+      ],
+      "default": "active",
+      "description": "Current loan status"
+    },
+    "loan_receivable_account_id": {
+      "type": "string",
+      "description": "Asset account tracking principal owed"
+    },
+    "interest_income_account_id": {
+      "type": "string",
+      "description": "Income account for interest earned"
+    },
+    "total_interest_earned": {
+      "type": "number",
+      "default": 0,
+      "description": "Total interest collected so far"
+    },
+    "total_fees_earned": {
+      "type": "number",
+      "default": 0,
+      "description": "Total fees collected"
+    },
+    "payoff_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date loan was paid in full"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Additional notes about the loan"
+    }
+  },
+  "required": [
+    "business_id",
+    "borrower_name",
+    "principal_amount",
+    "interest_rate",
+    "term_months",
+    "start_date"
+  ]
+}

@@ -1,0 +1,52 @@
+{
+  "name": "Account",
+  "type": "object",
+  "properties": {
+    "business_id": {
+      "type": "string",
+      "description": "ID of the business this account belongs to"
+    },
+    "account_number": {
+      "type": "string",
+      "description": "Account number for reference"
+    },
+    "name": {
+      "type": "string",
+      "description": "Account name"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "asset",
+        "liability",
+        "equity",
+        "income",
+        "expense"
+      ],
+      "description": "Account type"
+    },
+    "parent_account_id": {
+      "type": "string",
+      "description": "ID of parent account if this is a sub-account"
+    },
+    "description": {
+      "type": "string",
+      "description": "Plain language explanation of what this account is for"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether this account is active"
+    },
+    "is_system_account": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether this is a default system account"
+    }
+  },
+  "required": [
+    "business_id",
+    "name",
+    "type"
+  ]
+}

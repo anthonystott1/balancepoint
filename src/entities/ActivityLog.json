@@ -1,0 +1,55 @@
+{
+  "name": "ActivityLog",
+  "type": "object",
+  "properties": {
+    "business_id": {
+      "type": "string",
+      "description": "ID of the business"
+    },
+    "user_email": {
+      "type": "string",
+      "description": "Email of the user who performed the action"
+    },
+    "user_name": {
+      "type": "string",
+      "description": "Name of the user"
+    },
+    "action_type": {
+      "type": "string",
+      "enum": [
+        "transaction_created",
+        "transaction_updated",
+        "transaction_deleted",
+        "period_locked",
+        "period_unlocked",
+        "adjustment_entry",
+        "comment_added",
+        "user_invited",
+        "user_removed"
+      ],
+      "description": "Type of action performed"
+    },
+    "action_description": {
+      "type": "string",
+      "description": "Human-readable description of the action"
+    },
+    "entity_type": {
+      "type": "string",
+      "description": "Type of entity affected (transaction, period, etc.)"
+    },
+    "entity_id": {
+      "type": "string",
+      "description": "ID of the affected entity"
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Additional data about the action"
+    }
+  },
+  "required": [
+    "business_id",
+    "user_email",
+    "action_type",
+    "action_description"
+  ]
+}

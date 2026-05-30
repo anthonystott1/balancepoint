@@ -1,0 +1,43 @@
+{
+  "name": "AdjustmentEntry",
+  "type": "object",
+  "properties": {
+    "business_id": {
+      "type": "string",
+      "description": "ID of the business"
+    },
+    "transaction_id": {
+      "type": "string",
+      "description": "ID of the adjustment transaction"
+    },
+    "adjustment_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date the adjustment was made"
+    },
+    "adjusted_by": {
+      "type": "string",
+      "description": "Email of user who made adjustment"
+    },
+    "reason": {
+      "type": "string",
+      "description": "Required reason for the adjustment"
+    },
+    "affected_period": {
+      "type": "string",
+      "description": "Period being adjusted (e.g., '2024-01')"
+    },
+    "is_admin_override": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether this was an admin override"
+    }
+  },
+  "required": [
+    "business_id",
+    "transaction_id",
+    "adjustment_date",
+    "adjusted_by",
+    "reason"
+  ]
+}

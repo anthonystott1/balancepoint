@@ -1,0 +1,98 @@
+{
+  "name": "Contractor",
+  "type": "object",
+  "properties": {
+    "business_id": {
+      "type": "string",
+      "description": "ID of the business"
+    },
+    "full_legal_name": {
+      "type": "string",
+      "description": "Full legal name of the contractor"
+    },
+    "business_name": {
+      "type": "string",
+      "description": "Business name (if applicable)"
+    },
+    "address_line1": {
+      "type": "string",
+      "description": "Street address"
+    },
+    "address_line2": {
+      "type": "string",
+      "description": "Apartment, suite, etc."
+    },
+    "city": {
+      "type": "string",
+      "description": "City"
+    },
+    "state": {
+      "type": "string",
+      "description": "State"
+    },
+    "zip_code": {
+      "type": "string",
+      "description": "ZIP code"
+    },
+    "tax_id": {
+      "type": "string",
+      "description": "SSN or EIN (stored securely)"
+    },
+    "tax_id_type": {
+      "type": "string",
+      "enum": [
+        "ssn",
+        "ein"
+      ],
+      "description": "Type of tax ID"
+    },
+    "w9_collected": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether W-9 form has been collected"
+    },
+    "w9_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date W-9 was collected"
+    },
+    "payment_method": {
+      "type": "string",
+      "enum": [
+        "check",
+        "ach",
+        "wire",
+        "other"
+      ],
+      "default": "check",
+      "description": "Preferred payment method"
+    },
+    "email": {
+      "type": "string",
+      "description": "Contact email"
+    },
+    "phone": {
+      "type": "string",
+      "description": "Contact phone"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether contractor is active"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Additional notes"
+    }
+  },
+  "required": [
+    "business_id",
+    "full_legal_name",
+    "address_line1",
+    "city",
+    "state",
+    "zip_code",
+    "tax_id",
+    "tax_id_type"
+  ]
+}

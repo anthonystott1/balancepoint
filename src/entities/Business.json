@@ -1,0 +1,107 @@
+{
+  "name": "Business",
+  "type": "object",
+  "properties": {
+    "legal_name": {
+      "type": "string",
+      "description": "Official legal name of the business"
+    },
+    "display_name": {
+      "type": "string",
+      "description": "Short display name for the business"
+    },
+    "base_currency": {
+      "type": "string",
+      "default": "USD",
+      "description": "Base currency for this business (all reports in this currency)"
+    },
+    "ein": {
+      "type": "string",
+      "description": "Employer Identification Number (optional)"
+    },
+    "accounting_method": {
+      "type": "string",
+      "enum": [
+        "cash",
+        "accrual",
+        "both"
+      ],
+      "default": "cash",
+      "description": "Accounting method used by the business"
+    },
+    "fiscal_year_start_month": {
+      "type": "number",
+      "default": 1,
+      "description": "Month when fiscal year starts (1-12)"
+    },
+    "fiscal_year_end_month": {
+      "type": "number",
+      "default": 12,
+      "description": "Month when fiscal year ends (1-12)"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "closed",
+        "deleted"
+      ],
+      "default": "active",
+      "description": "Current status of the business"
+    },
+    "closed_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date when business was closed"
+    },
+    "closed_by": {
+      "type": "string",
+      "description": "Email of user who closed the business"
+    },
+    "deleted_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date when business was soft deleted"
+    },
+    "deleted_by": {
+      "type": "string",
+      "description": "Email of user who deleted the business"
+    },
+    "permanent_deletion_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date when business will be permanently deleted (30 days after soft delete)"
+    },
+    "address": {
+      "type": "string",
+      "description": "Business address"
+    },
+    "phone": {
+      "type": "string",
+      "description": "Business phone number"
+    },
+    "email": {
+      "type": "string",
+      "description": "Business email"
+    },
+    "logo_url": {
+      "type": "string",
+      "description": "URL to business logo"
+    },
+    "business_type": {
+      "type": "string",
+      "enum": [
+        "sole_proprietorship",
+        "partnership",
+        "llc",
+        "corporation"
+      ],
+      "default": "llc",
+      "description": "Type of business entity"
+    }
+  },
+  "required": [
+    "legal_name",
+    "display_name"
+  ]
+}

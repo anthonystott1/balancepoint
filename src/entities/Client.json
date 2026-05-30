@@ -1,0 +1,43 @@
+{
+  "name": "Client",
+  "type": "object",
+  "properties": {
+    "business_id": {
+      "type": "string",
+      "description": "ID of the business"
+    },
+    "client_name": {
+      "type": "string",
+      "description": "Client or company name"
+    },
+    "contact_person": {
+      "type": "string",
+      "description": "Primary contact person name"
+    },
+    "email": {
+      "type": "string",
+      "description": "Client email"
+    },
+    "phone": {
+      "type": "string",
+      "description": "Client phone number"
+    },
+    "address": {
+      "type": "string",
+      "description": "Client billing address"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether this client is active"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Additional notes about the client"
+    }
+  },
+  "required": [
+    "business_id",
+    "client_name"
+  ]
+}

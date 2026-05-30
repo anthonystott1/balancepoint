@@ -1,0 +1,70 @@
+{
+  "name": "Transaction",
+  "type": "object",
+  "properties": {
+    "business_id": {
+      "type": "string",
+      "description": "ID of the business this transaction belongs to"
+    },
+    "transaction_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date of the transaction"
+    },
+    "description": {
+      "type": "string",
+      "description": "Plain language description of the transaction"
+    },
+    "original_amount": {
+      "type": "number",
+      "description": "Original transaction amount in foreign currency"
+    },
+    "original_currency": {
+      "type": "string",
+      "description": "Original currency code (e.g., EUR, GBP, JPY)"
+    },
+    "exchange_rate": {
+      "type": "number",
+      "description": "Exchange rate used for conversion (foreign to base)"
+    },
+    "amount": {
+      "type": "number",
+      "description": "Transaction amount in base currency (after conversion)"
+    },
+    "source": {
+      "type": "string",
+      "enum": [
+        "manual",
+        "import",
+        "payroll",
+        "adjustment"
+      ],
+      "default": "manual",
+      "description": "How this transaction was created"
+    },
+    "is_cleared": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether this transaction has cleared the bank"
+    },
+    "reference_number": {
+      "type": "string",
+      "description": "Check number, invoice number, or other reference"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Additional notes or details"
+    },
+    "is_deleted": {
+      "type": "boolean",
+      "default": false,
+      "description": "Soft delete flag - never hard delete transactions"
+    }
+  },
+  "required": [
+    "business_id",
+    "transaction_date",
+    "description",
+    "amount"
+  ]
+}

@@ -1,0 +1,67 @@
+{
+  "name": "PeriodLock",
+  "type": "object",
+  "properties": {
+    "business_id": {
+      "type": "string",
+      "description": "ID of the business"
+    },
+    "lock_type": {
+      "type": "string",
+      "enum": [
+        "month",
+        "year",
+        "custom"
+      ],
+      "description": "Type of period lock"
+    },
+    "lock_start_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Start date of locked period"
+    },
+    "lock_end_date": {
+      "type": "string",
+      "format": "date",
+      "description": "End date of locked period"
+    },
+    "locked_by": {
+      "type": "string",
+      "description": "Email of user who locked the period"
+    },
+    "locked_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the period was locked"
+    },
+    "lock_reason": {
+      "type": "string",
+      "description": "Reason for locking the period"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether this lock is active"
+    },
+    "unlocked_by": {
+      "type": "string",
+      "description": "Email of user who unlocked (if unlocked)"
+    },
+    "unlocked_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When unlocked"
+    },
+    "unlock_reason": {
+      "type": "string",
+      "description": "Reason for unlocking"
+    }
+  },
+  "required": [
+    "business_id",
+    "lock_type",
+    "lock_start_date",
+    "lock_end_date",
+    "locked_by"
+  ]
+}

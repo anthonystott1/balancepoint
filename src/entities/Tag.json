@@ -1,0 +1,39 @@
+{
+  "name": "Tag",
+  "type": "object",
+  "properties": {
+    "business_id": {
+      "type": "string",
+      "description": "ID of the business this tag belongs to"
+    },
+    "name": {
+      "type": "string",
+      "description": "Tag name (e.g., 'ABC Corp', 'Website Redesign')"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "client",
+        "project",
+        "department",
+        "location",
+        "other"
+      ],
+      "description": "Optional category for organizing tags"
+    },
+    "color": {
+      "type": "string",
+      "default": "gray",
+      "description": "Color for visual identification"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether this tag is active"
+    }
+  },
+  "required": [
+    "business_id",
+    "name"
+  ]
+}

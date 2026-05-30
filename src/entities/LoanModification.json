@@ -1,0 +1,51 @@
+{
+  "name": "LoanModification",
+  "type": "object",
+  "properties": {
+    "business_id": {
+      "type": "string",
+      "description": "ID of the business"
+    },
+    "loan_id": {
+      "type": "string",
+      "description": "ID of the loan being modified"
+    },
+    "modification_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date the modification was made"
+    },
+    "modification_type": {
+      "type": "string",
+      "enum": [
+        "term_extension",
+        "rate_change",
+        "payment_adjustment",
+        "other"
+      ],
+      "description": "Type of modification"
+    },
+    "old_value": {
+      "type": "string",
+      "description": "Previous value (as string for flexibility)"
+    },
+    "new_value": {
+      "type": "string",
+      "description": "New value (as string for flexibility)"
+    },
+    "reason": {
+      "type": "string",
+      "description": "Reason for modification"
+    },
+    "modified_by": {
+      "type": "string",
+      "description": "Email of user who made the change"
+    }
+  },
+  "required": [
+    "business_id",
+    "loan_id",
+    "modification_date",
+    "modification_type"
+  ]
+}

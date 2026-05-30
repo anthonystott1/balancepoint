@@ -1,0 +1,37 @@
+{
+  "name": "TransactionLine",
+  "type": "object",
+  "properties": {
+    "transaction_id": {
+      "type": "string",
+      "description": "ID of the parent transaction"
+    },
+    "business_id": {
+      "type": "string",
+      "description": "ID of the business (for data isolation)"
+    },
+    "account_id": {
+      "type": "string",
+      "description": "ID of the account being debited or credited"
+    },
+    "debit_amount": {
+      "type": "number",
+      "default": 0,
+      "description": "Debit amount (0 if this is a credit line)"
+    },
+    "credit_amount": {
+      "type": "number",
+      "default": 0,
+      "description": "Credit amount (0 if this is a debit line)"
+    },
+    "line_description": {
+      "type": "string",
+      "description": "Description specific to this line (optional)"
+    }
+  },
+  "required": [
+    "transaction_id",
+    "business_id",
+    "account_id"
+  ]
+}

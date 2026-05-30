@@ -1,0 +1,78 @@
+{
+  "name": "LoanPayment",
+  "type": "object",
+  "properties": {
+    "business_id": {
+      "type": "string",
+      "description": "ID of the business"
+    },
+    "loan_id": {
+      "type": "string",
+      "description": "ID of the loan this payment belongs to"
+    },
+    "payment_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date payment was received"
+    },
+    "amount_received": {
+      "type": "number",
+      "description": "Total amount of payment"
+    },
+    "principal_portion": {
+      "type": "number",
+      "description": "Amount applied to principal"
+    },
+    "interest_portion": {
+      "type": "number",
+      "description": "Amount applied to interest"
+    },
+    "fee_portion": {
+      "type": "number",
+      "default": 0,
+      "description": "Amount applied to fees"
+    },
+    "payment_method": {
+      "type": "string",
+      "enum": [
+        "cash",
+        "check",
+        "bank_transfer",
+        "other"
+      ],
+      "default": "bank_transfer",
+      "description": "How payment was received"
+    },
+    "reference_number": {
+      "type": "string",
+      "description": "Check number or transaction reference"
+    },
+    "principal_transaction_id": {
+      "type": "string",
+      "description": "ID of the transaction created for principal payment"
+    },
+    "interest_transaction_id": {
+      "type": "string",
+      "description": "ID of the transaction created for interest payment"
+    },
+    "fee_transaction_id": {
+      "type": "string",
+      "description": "ID of the transaction created for fee payment"
+    },
+    "is_late": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether this payment was late"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Additional notes about this payment"
+    }
+  },
+  "required": [
+    "business_id",
+    "loan_id",
+    "payment_date",
+    "amount_received"
+  ]
+}

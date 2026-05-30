@@ -1,0 +1,51 @@
+{
+  "name": "OwnerTransaction",
+  "type": "object",
+  "properties": {
+    "business_id": {
+      "type": "string",
+      "description": "ID of the business"
+    },
+    "owner_equity_id": {
+      "type": "string",
+      "description": "ID of the owner equity record"
+    },
+    "transaction_type": {
+      "type": "string",
+      "enum": [
+        "contribution",
+        "draw"
+      ],
+      "description": "Type of transaction"
+    },
+    "transaction_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date of the transaction"
+    },
+    "amount": {
+      "type": "number",
+      "description": "Amount of the draw or contribution"
+    },
+    "bank_account_id": {
+      "type": "string",
+      "description": "Bank account used for the transaction"
+    },
+    "accounting_transaction_id": {
+      "type": "string",
+      "description": "ID of the created accounting transaction"
+    },
+    "memo": {
+      "type": "string",
+      "description": "Optional note about the transaction"
+    }
+  },
+  "required": [
+    "business_id",
+    "owner_equity_id",
+    "transaction_type",
+    "transaction_date",
+    "amount",
+    "bank_account_id"
+  ]
+}

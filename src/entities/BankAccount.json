@@ -1,0 +1,81 @@
+{
+  "name": "BankAccount",
+  "type": "object",
+  "properties": {
+    "business_id": {
+      "type": "string",
+      "description": "ID of the business"
+    },
+    "account_name": {
+      "type": "string",
+      "description": "Name of the account (e.g., Chase Business Checking)"
+    },
+    "account_type": {
+      "type": "string",
+      "enum": [
+        "checking",
+        "savings",
+        "credit_card",
+        "cash",
+        "money_market",
+        "line_of_credit"
+      ],
+      "description": "Type of account"
+    },
+    "institution_name": {
+      "type": "string",
+      "description": "Bank or institution name"
+    },
+    "account_number_last4": {
+      "type": "string",
+      "description": "Last 4 digits of account number"
+    },
+    "starting_balance": {
+      "type": "number",
+      "default": 0,
+      "description": "Initial balance when added to system"
+    },
+    "current_balance": {
+      "type": "number",
+      "default": 0,
+      "description": "Current calculated balance"
+    },
+    "date_opened": {
+      "type": "string",
+      "format": "date",
+      "description": "When account was opened"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether account is active"
+    },
+    "closed_date": {
+      "type": "string",
+      "format": "date",
+      "description": "When account was closed"
+    },
+    "chart_of_accounts_id": {
+      "type": "string",
+      "description": "Linked Chart of Accounts entry"
+    },
+    "credit_limit": {
+      "type": "number",
+      "description": "Credit limit (for credit cards/lines of credit)"
+    },
+    "last_reconciled_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Last date account was reconciled"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Additional notes"
+    }
+  },
+  "required": [
+    "business_id",
+    "account_name",
+    "account_type"
+  ]
+}

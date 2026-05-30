@@ -1,0 +1,35 @@
+{
+  "name": "UserBusinessAccess",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "description": "Email of the user"
+    },
+    "business_id": {
+      "type": "string",
+      "description": "ID of the business"
+    },
+    "permission_level": {
+      "type": "string",
+      "enum": [
+        "admin",
+        "editor",
+        "accountant",
+        "readonly"
+      ],
+      "default": "readonly",
+      "description": "User's permission level for this business"
+    },
+    "is_default": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether this is the user's default business"
+    }
+  },
+  "required": [
+    "user_email",
+    "business_id",
+    "permission_level"
+  ]
+}

@@ -1,0 +1,55 @@
+{
+  "name": "OwnerEquity",
+  "type": "object",
+  "properties": {
+    "business_id": {
+      "type": "string",
+      "description": "ID of the business"
+    },
+    "owner_name": {
+      "type": "string",
+      "description": "Name of the owner"
+    },
+    "owner_email": {
+      "type": "string",
+      "description": "Email of the owner"
+    },
+    "ownership_percentage": {
+      "type": "number",
+      "description": "Percentage ownership (0-100)"
+    },
+    "capital_account_id": {
+      "type": "string",
+      "description": "Owner's Capital account ID"
+    },
+    "draw_account_id": {
+      "type": "string",
+      "description": "Owner's Draw account ID"
+    },
+    "current_equity_balance": {
+      "type": "number",
+      "default": 0,
+      "description": "Current equity balance for this owner"
+    },
+    "ytd_contributions": {
+      "type": "number",
+      "default": 0,
+      "description": "Year-to-date capital contributions"
+    },
+    "ytd_draws": {
+      "type": "number",
+      "default": 0,
+      "description": "Year-to-date draws taken"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether this owner is still active"
+    }
+  },
+  "required": [
+    "business_id",
+    "owner_name",
+    "ownership_percentage"
+  ]
+}

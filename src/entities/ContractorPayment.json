@@ -1,0 +1,72 @@
+{
+  "name": "ContractorPayment",
+  "type": "object",
+  "properties": {
+    "business_id": {
+      "type": "string",
+      "description": "ID of the business"
+    },
+    "contractor_id": {
+      "type": "string",
+      "description": "ID of the contractor"
+    },
+    "payment_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date payment was made"
+    },
+    "amount": {
+      "type": "number",
+      "description": "Payment amount"
+    },
+    "payment_method": {
+      "type": "string",
+      "enum": [
+        "check",
+        "ach",
+        "wire",
+        "cash",
+        "other"
+      ],
+      "default": "check",
+      "description": "How payment was made"
+    },
+    "check_number": {
+      "type": "string",
+      "description": "Check number if paid by check"
+    },
+    "bank_account_id": {
+      "type": "string",
+      "description": "Bank account used for payment"
+    },
+    "expense_account_id": {
+      "type": "string",
+      "description": "Expense account to debit"
+    },
+    "transaction_id": {
+      "type": "string",
+      "description": "Accounting transaction created for this payment"
+    },
+    "project_tag_id": {
+      "type": "string",
+      "description": "Optional project tag"
+    },
+    "memo": {
+      "type": "string",
+      "description": "Payment memo or description"
+    },
+    "is_deleted": {
+      "type": "boolean",
+      "default": false,
+      "description": "Soft delete flag"
+    }
+  },
+  "required": [
+    "business_id",
+    "contractor_id",
+    "payment_date",
+    "amount",
+    "bank_account_id",
+    "expense_account_id"
+  ]
+}

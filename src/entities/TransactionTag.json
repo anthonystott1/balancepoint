@@ -1,0 +1,23 @@
+{
+  "name": "TransactionTag",
+  "type": "object",
+  "properties": {
+    "transaction_id": {
+      "type": "string",
+      "description": "ID of the transaction"
+    },
+    "tag_id": {
+      "type": "string",
+      "description": "ID of the tag"
+    },
+    "business_id": {
+      "type": "string",
+      "description": "ID of the business (for data isolation)"
+    }
+  },
+  "required": [
+    "transaction_id",
+    "tag_id",
+    "business_id"
+  ]
+}

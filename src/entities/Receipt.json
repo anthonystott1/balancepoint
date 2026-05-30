@@ -1,0 +1,89 @@
+{
+  "name": "Receipt",
+  "type": "object",
+  "properties": {
+    "business_id": {
+      "type": "string",
+      "description": "ID of the business"
+    },
+    "transaction_id": {
+      "type": "string",
+      "description": "ID of the linked transaction (optional)"
+    },
+    "file_url": {
+      "type": "string",
+      "description": "URL to the uploaded file"
+    },
+    "file_name": {
+      "type": "string",
+      "description": "Original file name"
+    },
+    "file_type": {
+      "type": "string",
+      "description": "File MIME type (image/jpeg, application/pdf, etc.)"
+    },
+    "file_size": {
+      "type": "number",
+      "description": "File size in bytes"
+    },
+    "upload_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the file was uploaded"
+    },
+    "uploaded_by": {
+      "type": "string",
+      "description": "Email of user who uploaded"
+    },
+    "vendor_name": {
+      "type": "string",
+      "description": "Vendor or merchant name"
+    },
+    "receipt_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date on the receipt"
+    },
+    "amount": {
+      "type": "number",
+      "description": "Amount shown on receipt"
+    },
+    "category": {
+      "type": "string",
+      "description": "Receipt category (meals, travel, supplies, etc.)"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Additional notes about the receipt"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Tags for organization"
+    },
+    "is_deleted": {
+      "type": "boolean",
+      "default": false,
+      "description": "Soft delete flag"
+    },
+    "deleted_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When marked as deleted"
+    },
+    "deleted_by": {
+      "type": "string",
+      "description": "Who deleted it"
+    }
+  },
+  "required": [
+    "business_id",
+    "file_url",
+    "file_name",
+    "file_type",
+    "upload_date",
+    "uploaded_by"
+  ]
+}

@@ -1,0 +1,49 @@
+{
+  "name": "ImportTemplate",
+  "type": "object",
+  "properties": {
+    "business_id": {
+      "type": "string",
+      "description": "ID of the business this template belongs to"
+    },
+    "template_name": {
+      "type": "string",
+      "description": "Name for this mapping template (e.g., 'Chase Checking')"
+    },
+    "bank_name": {
+      "type": "string",
+      "description": "Name of the bank or institution"
+    },
+    "account_id": {
+      "type": "string",
+      "description": "Default account to import into"
+    },
+    "field_mapping": {
+      "type": "object",
+      "description": "Mapping of CSV columns to transaction fields",
+      "properties": {
+        "date_column": {
+          "type": "string"
+        },
+        "description_column": {
+          "type": "string"
+        },
+        "amount_column": {
+          "type": "string"
+        },
+        "reference_column": {
+          "type": "string"
+        }
+      }
+    },
+    "date_format": {
+      "type": "string",
+      "description": "Date format in the CSV (e.g., 'MM/DD/YYYY')"
+    }
+  },
+  "required": [
+    "business_id",
+    "template_name",
+    "field_mapping"
+  ]
+}

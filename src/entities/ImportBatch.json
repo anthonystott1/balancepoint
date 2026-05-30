@@ -1,0 +1,47 @@
+{
+  "name": "ImportBatch",
+  "type": "object",
+  "properties": {
+    "business_id": {
+      "type": "string",
+      "description": "ID of the business"
+    },
+    "account_id": {
+      "type": "string",
+      "description": "Account transactions were imported into"
+    },
+    "file_name": {
+      "type": "string",
+      "description": "Original CSV file name"
+    },
+    "imported_count": {
+      "type": "number",
+      "description": "Number of transactions successfully imported"
+    },
+    "failed_count": {
+      "type": "number",
+      "description": "Number of rows that failed validation"
+    },
+    "duplicate_count": {
+      "type": "number",
+      "description": "Number of potential duplicates detected"
+    },
+    "transaction_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "IDs of transactions created in this batch"
+    },
+    "can_undo": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether this batch can still be undone"
+    }
+  },
+  "required": [
+    "business_id",
+    "account_id",
+    "file_name"
+  ]
+}

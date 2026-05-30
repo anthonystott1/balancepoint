@@ -1,0 +1,58 @@
+{
+  "name": "Budget",
+  "type": "object",
+  "properties": {
+    "business_id": {
+      "type": "string",
+      "description": "ID of the business"
+    },
+    "account_id": {
+      "type": "string",
+      "description": "Chart of Accounts ID this budget applies to"
+    },
+    "period_type": {
+      "type": "string",
+      "enum": [
+        "monthly",
+        "quarterly",
+        "yearly"
+      ],
+      "description": "Budget period type"
+    },
+    "period_start_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Start date of budget period"
+    },
+    "period_end_date": {
+      "type": "string",
+      "format": "date",
+      "description": "End date of budget period"
+    },
+    "budget_amount": {
+      "type": "number",
+      "description": "Budgeted amount for this period"
+    },
+    "original_budget_amount": {
+      "type": "number",
+      "description": "Original budget before adjustments"
+    },
+    "adjustment_note": {
+      "type": "string",
+      "description": "Reason for budget adjustment"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether this budget is active"
+    }
+  },
+  "required": [
+    "business_id",
+    "account_id",
+    "period_type",
+    "period_start_date",
+    "period_end_date",
+    "budget_amount"
+  ]
+}

@@ -1,0 +1,125 @@
+{
+  "name": "Invoice",
+  "type": "object",
+  "properties": {
+    "business_id": {
+      "type": "string",
+      "description": "ID of the business"
+    },
+    "client_id": {
+      "type": "string",
+      "description": "ID of the client"
+    },
+    "invoice_number": {
+      "type": "string",
+      "description": "Unique invoice number"
+    },
+    "invoice_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date invoice was created"
+    },
+    "due_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Payment due date"
+    },
+    "line_items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "description": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "number"
+          },
+          "rate": {
+            "type": "number"
+          },
+          "amount": {
+            "type": "number"
+          }
+        }
+      },
+      "description": "Invoice line items"
+    },
+    "subtotal": {
+      "type": "number",
+      "description": "Subtotal before discount"
+    },
+    "discount_amount": {
+      "type": "number",
+      "default": 0,
+      "description": "Flat discount amount"
+    },
+    "discount_percent": {
+      "type": "number",
+      "default": 0,
+      "description": "Percentage discount"
+    },
+    "total_amount": {
+      "type": "number",
+      "description": "Total amount due"
+    },
+    "amount_paid": {
+      "type": "number",
+      "default": 0,
+      "description": "Amount already paid"
+    },
+    "balance_due": {
+      "type": "number",
+      "description": "Remaining balance"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "sent",
+        "paid",
+        "overdue",
+        "cancelled"
+      ],
+      "default": "draft",
+      "description": "Invoice status"
+    },
+    "payment_terms": {
+      "type": "string",
+      "description": "Payment terms (e.g., Net 30)"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Notes visible to client"
+    },
+    "internal_notes": {
+      "type": "string",
+      "description": "Internal notes not shown to client"
+    },
+    "project_tag_id": {
+      "type": "string",
+      "description": "Optional project tag"
+    },
+    "income_account_id": {
+      "type": "string",
+      "description": "Income account to credit when paid"
+    },
+    "transaction_id": {
+      "type": "string",
+      "description": "Transaction created when marked paid"
+    },
+    "paid_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date invoice was fully paid"
+    }
+  },
+  "required": [
+    "business_id",
+    "client_id",
+    "invoice_number",
+    "invoice_date",
+    "due_date",
+    "total_amount"
+  ]
+}

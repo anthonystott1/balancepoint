@@ -1,0 +1,115 @@
+{
+  "name": "RecurringTransaction",
+  "type": "object",
+  "properties": {
+    "business_id": {
+      "type": "string",
+      "description": "ID of the business"
+    },
+    "template_name": {
+      "type": "string",
+      "description": "Name for this recurring transaction"
+    },
+    "description": {
+      "type": "string",
+      "description": "Transaction description"
+    },
+    "frequency": {
+      "type": "string",
+      "enum": [
+        "daily",
+        "weekly",
+        "biweekly",
+        "monthly",
+        "quarterly",
+        "yearly"
+      ],
+      "description": "How often the transaction repeats"
+    },
+    "day_of_month": {
+      "type": "number",
+      "description": "For monthly/quarterly/yearly - day of month (1-31, or -1 for last day)"
+    },
+    "day_of_week": {
+      "type": "number",
+      "description": "For weekly - day of week (0=Sunday, 6=Saturday)"
+    },
+    "month_of_year": {
+      "type": "number",
+      "description": "For yearly - month (1-12)"
+    },
+    "start_date": {
+      "type": "string",
+      "format": "date",
+      "description": "When to start generating transactions"
+    },
+    "end_date": {
+      "type": "string",
+      "format": "date",
+      "description": "When to stop generating (optional)"
+    },
+    "max_occurrences": {
+      "type": "number",
+      "description": "Max number of times to generate (optional)"
+    },
+    "occurrences_generated": {
+      "type": "number",
+      "default": 0,
+      "description": "Count of transactions generated so far"
+    },
+    "from_account_id": {
+      "type": "string",
+      "description": "Debit account"
+    },
+    "to_account_id": {
+      "type": "string",
+      "description": "Credit account"
+    },
+    "amount": {
+      "type": "number",
+      "description": "Transaction amount"
+    },
+    "tag_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Tag IDs to apply to generated transactions"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether this template is active"
+    },
+    "skip_weekends": {
+      "type": "boolean",
+      "default": false,
+      "description": "Move to next business day if falls on weekend"
+    },
+    "require_review": {
+      "type": "boolean",
+      "default": false,
+      "description": "Require manual review before posting"
+    },
+    "last_generated_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Last date a transaction was generated"
+    },
+    "next_occurrence_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Next scheduled date"
+    }
+  },
+  "required": [
+    "business_id",
+    "template_name",
+    "description",
+    "frequency",
+    "start_date",
+    "from_account_id",
+    "to_account_id",
+    "amount"
+  ]
+}

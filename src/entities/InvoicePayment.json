@@ -1,0 +1,58 @@
+{
+  "name": "InvoicePayment",
+  "type": "object",
+  "properties": {
+    "business_id": {
+      "type": "string",
+      "description": "ID of the business"
+    },
+    "invoice_id": {
+      "type": "string",
+      "description": "ID of the invoice"
+    },
+    "payment_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date payment was received"
+    },
+    "amount": {
+      "type": "number",
+      "description": "Payment amount"
+    },
+    "payment_method": {
+      "type": "string",
+      "enum": [
+        "cash",
+        "check",
+        "bank_transfer",
+        "credit_card",
+        "other"
+      ],
+      "default": "bank_transfer",
+      "description": "How payment was received"
+    },
+    "bank_account_id": {
+      "type": "string",
+      "description": "Bank account where payment was deposited"
+    },
+    "transaction_id": {
+      "type": "string",
+      "description": "Accounting transaction created for this payment"
+    },
+    "reference_number": {
+      "type": "string",
+      "description": "Check number or transaction reference"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Payment notes"
+    }
+  },
+  "required": [
+    "business_id",
+    "invoice_id",
+    "payment_date",
+    "amount",
+    "bank_account_id"
+  ]
+}

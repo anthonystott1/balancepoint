@@ -1,0 +1,68 @@
+{
+  "name": "AuditLog",
+  "type": "object",
+  "properties": {
+    "business_id": {
+      "type": "string",
+      "description": "ID of the business"
+    },
+    "user_email": {
+      "type": "string",
+      "description": "Email of user who made the change"
+    },
+    "user_name": {
+      "type": "string",
+      "description": "Name of the user"
+    },
+    "action": {
+      "type": "string",
+      "enum": [
+        "create",
+        "update",
+        "delete"
+      ],
+      "description": "Type of action"
+    },
+    "entity_type": {
+      "type": "string",
+      "description": "Type of entity affected"
+    },
+    "entity_id": {
+      "type": "string",
+      "description": "ID of the affected entity"
+    },
+    "before_values": {
+      "type": "object",
+      "description": "Values before the change"
+    },
+    "after_values": {
+      "type": "object",
+      "description": "Values after the change"
+    },
+    "ip_address": {
+      "type": "string",
+      "description": "IP address of the user"
+    },
+    "user_agent": {
+      "type": "string",
+      "description": "Browser/device info"
+    },
+    "can_undo": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether this action can be undone"
+    },
+    "undo_expiry": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When undo expires (24 hours from action)"
+    }
+  },
+  "required": [
+    "business_id",
+    "user_email",
+    "action",
+    "entity_type",
+    "entity_id"
+  ]
+}
