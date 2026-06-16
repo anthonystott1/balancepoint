@@ -30,6 +30,7 @@ import {
   BarChart3,
   RefreshCw,
   Target,
+  FileSpreadsheet,
 } from 'lucide-react';
 
 // Map page names to their URL paths
@@ -50,6 +51,7 @@ const PAGE_URLS = {
   TeamManagement:       '/team',
   BusinessSettings:     '/settings',
   BusinessSetup:        '/business-setup',
+  Imports:              '/imports',
 };
 
 export function createPageUrl(pageName) {
@@ -71,6 +73,7 @@ const navItems = [
   { name: "Owner's Equity",    icon: Users,            page: 'OwnerEquity' },
   { name: 'Chart of Accounts', icon: BookOpen,         page: 'ChartOfAccounts' },
   { name: 'Team',              icon: Users,            page: 'TeamManagement' },
+  { name: 'Import Data',       icon: FileSpreadsheet,  page: 'Imports' },
   { name: 'Settings',          icon: Settings,         page: 'BusinessSettings' },
 ];
 

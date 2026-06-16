@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useBusiness } from '../business/BusinessContext';
+import { useBusiness } from '../../contexts/BusinessContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Plus, FileText, DollarSign, HandCoins, Upload, Zap } from 'lucide-react';

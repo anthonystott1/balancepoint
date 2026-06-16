@@ -21,6 +21,7 @@ import OwnerEquity from '@/pages/OwnerEquity';
 import ChartOfAccounts from '@/pages/ChartOfAccounts';
 import TeamManagement from '@/pages/TeamManagement';
 import BusinessSettings from '@/pages/BusinessSettings';
+import Imports from './pages/Imports'
 import BusinessSetup from '@/pages/BusinessSetup';
 
 // Auth pages
@@ -213,7 +214,15 @@ function AppRoutes() {
           </WithLayout>
         </RequireAuth>
       } />
-
+      
+      <Route path="/imports" element={
+        <RequireAuth>
+          <WithLayout page="Imports">
+            <Imports />
+          </WithLayout>
+        </RequireAuth>
+      } />
+      
       {/* Catch-all */}
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

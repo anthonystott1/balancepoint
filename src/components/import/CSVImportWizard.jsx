@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useBusiness } from '../../contexts/BusinessContext';
-import { transactionsAPI, importBatchesAPI, accountsAPI, tagsAPI } from '../../api/index';
+import { transactionsAPI, accountsAPI } from '../../api/index';
 import { supabase } from '../../lib/supabase';
 import {
   Dialog,
@@ -118,6 +118,13 @@ const detectFormat = (headers) => {
   if (h.includes('check number'))         suggestions.reference   = headers[h.indexOf('check number')];
   if (h.includes('transaction category')) suggestions.category    = headers[h.indexOf('transaction category')];
   if (h.includes('type'))                 suggestions.category    = headers[h.indexOf('type')];
+  // Split debit/credit columns — common in many bank exports
+  if (h.includes('debit'))  suggestions.debit  = headers[h.indexOf('debit')];
+  if (h.includes('credit')) suggestions.credit = headers[h.indexOf('credit')];
+  // If we found split columns but no single amount column, clear amount suggestion
+  if (suggestions.debit && suggestions.credit && !suggestions.amount) {
+    delete suggestions.amount;
+  }
   return { format: 'Bank CSV', suggestions };
 };
 
@@ -149,12 +156,10 @@ export default function CSVImportWizard({ isOpen, onClose, accounts, bankAccount
   const [headers, setHeaders] = useState([]);
   const [detectedFormat, setDetectedFormat] = useState('');
   const [mapping, setMapping] = useState({
-    date: '', description: '', amount: '', reference: '',
+    date: '', description: '', amount: '', debit: '', credit: '', reference: '',
     category: '', vendor: '', dateFormat: 'MDY',
   });
-  // defaultAccount: chart-of-accounts asset account ID — used in transaction lines
   const [defaultAccount, setDefaultAccount] = useState('');
-  // selectedBankAccount: bank_accounts row ID — stored on import_batches.account_id
   const [selectedBankAccount, setSelectedBankAccount] = useState('');
   const [preview, setPreview] = useState([]);
   const [importResult, setImportResult] = useState(null);
@@ -167,6 +172,10 @@ export default function CSVImportWizard({ isOpen, onClose, accounts, bankAccount
   // ─── Import mutation ──────────────────────────────────────────────────────
   const importMutation = useMutation({
     mutationFn: async () => {
+      console.log('Import starting...');
+      console.log('Valid rows:', preview.filter(p => p.valid).length);
+      console.log('defaultAccount:', defaultAccount);
+      console.log('selectedBankAccount:', selectedBankAccount);
       // 1. Resolve/create chart-of-accounts entries for categories
       const resolvedAccountMap = {};
       for (const [categoryName, resolution] of Object.entries(accountResolutions)) {
@@ -183,10 +192,14 @@ export default function CSVImportWizard({ isOpen, onClose, accounts, bankAccount
         }
       }
 
-      // 2. Resolve/create vendor tags
+      // 2. Resolve/create vendor tags (inline — no tagsAPI needed)
       const vendorTagMap = {};
-      if (mapping.vendor && uniqueVendors.length > 0) {
-        const existingTags = await tagsAPI.getAll(currentBusiness.id);
+      if (mapping.vendor && mapping.vendor !== 'none' && uniqueVendors.length > 0) {
+        const { data: existingTags = [] } = await supabase
+          .from('tags')
+          .select('*')
+          .eq('business_id', currentBusiness.id);
+
         for (const vendorName of uniqueVendors) {
           if (!vendorName) continue;
           const existing = existingTags.find(
@@ -195,13 +208,18 @@ export default function CSVImportWizard({ isOpen, onClose, accounts, bankAccount
           if (existing) {
             vendorTagMap[vendorName] = existing.id;
           } else {
-            const newTag = await tagsAPI.create({
-              business_id: currentBusiness.id,
-              name:        vendorName,
-              category:    'client',
-              color:       'blue',
-              is_active:   true,
-            });
+            const { data: newTag, error: tagError } = await supabase
+              .from('tags')
+              .insert([{
+                business_id: currentBusiness.id,
+                name:        vendorName,
+                category:    'client',
+                color:       'blue',
+                is_active:   true,
+              }])
+              .select()
+              .single();
+            if (tagError) throw tagError;
             vendorTagMap[vendorName] = newTag.id;
           }
         }
@@ -210,8 +228,8 @@ export default function CSVImportWizard({ isOpen, onClose, accounts, bankAccount
       // 3. Import transactions
       const validRows  = preview.filter(p => p.valid);
       const createdIds = [];
-      const catIdx  = mapping.category  && mapping.category  !== 'none' ? headers.indexOf(mapping.category)  : -1;
-      const vendIdx = mapping.vendor    && mapping.vendor    !== 'none' ? headers.indexOf(mapping.vendor)    : -1;
+      const catIdx  = mapping.category && mapping.category !== 'none' ? headers.indexOf(mapping.category)  : -1;
+      const vendIdx = mapping.vendor   && mapping.vendor   !== 'none' ? headers.indexOf(mapping.vendor)    : -1;
 
       for (const row of validRows) {
         const rawRow    = csvData[row.id];
@@ -226,6 +244,7 @@ export default function CSVImportWizard({ isOpen, onClose, accounts, bankAccount
           offsetAccountId = findFallbackAccount(isDebit ? 'expense' : 'income');
         }
 
+        // transaction_lines uses debit/credit (not debit_amount/credit_amount)
         const lines = isDebit
           ? [
               { account_id: offsetAccountId, debit: absAmount, credit: 0,         description: row.description },
@@ -236,6 +255,9 @@ export default function CSVImportWizard({ isOpen, onClose, accounts, bankAccount
               { account_id: offsetAccountId, debit: 0,         credit: absAmount, description: row.description },
             ];
 
+        // transactions table has NO amount column — amount lives on transaction_lines
+        console.log('Creating transaction for row:', row.date, row.description, row.amount);
+        console.log('Lines:', JSON.stringify(lines.filter(l => l.account_id)));
         const transaction = await transactionsAPI.create(
           {
             business_id:      currentBusiness.id,
@@ -245,10 +267,12 @@ export default function CSVImportWizard({ isOpen, onClose, accounts, bankAccount
             is_cleared:       false,
             reference_number: row.reference || null,
           },
-          lines
+          lines.filter(l => l.account_id) // skip lines where account lookup failed
         );
+        console.log('Transaction created:', transaction.id);
         createdIds.push(transaction.id);
 
+        // Attach vendor tag if present
         if (vendIdx >= 0 && rawRow?.[vendIdx]) {
           const vendor = rawRow[vendIdx].trim();
           const tagId  = vendorTagMap[vendor];
@@ -262,21 +286,23 @@ export default function CSVImportWizard({ isOpen, onClose, accounts, bankAccount
         }
       }
 
-      // 4. Create import batch
-      // account_id references bank_accounts (not chart-of-accounts accounts)
-      // selectedBankAccount is a bank_accounts.id — correct FK target
-      await importBatchesAPI.create({
-        business_id:     currentBusiness.id,
-        account_id:      selectedBankAccount && selectedBankAccount !== 'none'
-                           ? selectedBankAccount
-                           : null,
-        file_name:       file.name,
-        imported_count:  createdIds.length,
-        failed_count:    preview.filter(p => !p.valid).length,
-        duplicate_count: 0,
-        transaction_ids: createdIds,
-        can_undo:        true,
-      });
+      // 4. Create import batch record (inline — no importBatchesAPI needed)
+      const { error: batchError } = await supabase
+        .from('import_batches')
+        .insert([{
+          business_id:     currentBusiness.id,
+          account_id:      selectedBankAccount && selectedBankAccount !== 'none'
+                             ? selectedBankAccount
+                             : null,
+          file_name:       file.name,
+          imported_count:  createdIds.length,
+          failed_count:    preview.filter(p => !p.valid).length,
+          duplicate_count: 0,
+          transaction_ids: createdIds,
+          can_undo:        true,
+        }]);
+
+      if (batchError) throw batchError;
 
       return {
         importedCount:   createdIds.length,
@@ -292,11 +318,16 @@ export default function CSVImportWizard({ isOpen, onClose, accounts, bankAccount
       setImportResult(result);
       setStep(5);
     },
+    onError: (error) => {
+      console.error('Import failed:', error);
+      console.error('Error message:', error?.message);
+      console.error('Error details:', JSON.stringify(error, null, 2));
+    },
   });
 
   const resetWizard = () => {
     setStep(1); setFile(null); setCsvData([]); setHeaders([]); setDetectedFormat('');
-    setMapping({ date:'', description:'', amount:'', reference:'', category:'', vendor:'', dateFormat:'MDY' });
+    setMapping({ date:'', description:'', amount:'', debit:'', credit:'', reference:'', category:'', vendor:'', dateFormat:'MDY' });
     setDefaultAccount(''); setSelectedBankAccount(''); setPreview([]); setImportResult(null);
     setAccountResolutions({}); setUniqueCategories([]); setUniqueVendors([]);
   };
@@ -311,7 +342,8 @@ export default function CSVImportWizard({ isOpen, onClose, accounts, bankAccount
       const text = event.target?.result || '';
       const rows = parseCSV(text);
       if (rows.length < 2) { alert('CSV appears empty or could not be parsed.'); return; }
-      const headerRow = rows[0];
+      // Sanitize blank header names — Radix crashes on empty string values/keys
+      const headerRow = rows[0].map((h, i) => h.trim() || `Column_${i + 1}`);
       const dataRows  = rows.slice(1).filter(r => r.some(f => f !== ''));
       const { format, suggestions } = detectFormat(headerRow);
       setDetectedFormat(format);
@@ -322,6 +354,8 @@ export default function CSVImportWizard({ isOpen, onClose, accounts, bankAccount
         date:        suggestions.date        || '',
         description: suggestions.description || '',
         amount:      suggestions.amount      || '',
+        debit:       suggestions.debit       || '',
+        credit:      suggestions.credit      || '',
         reference:   suggestions.reference   || '',
         category:    suggestions.category    || '',
         vendor:      suggestions.vendor      || '',
@@ -333,18 +367,31 @@ export default function CSVImportWizard({ isOpen, onClose, accounts, bankAccount
 
   // ─── Build preview ────────────────────────────────────────────────────────
   const buildPreviewAndReview = () => {
-    if (!mapping.date || !mapping.description || !mapping.amount || !defaultAccount) {
-      alert('Please select a destination account and map Date, Description, and Amount columns.');
+    // Determine amount mode: single column or split debit/credit
+    const usingSplitColumns = (!mapping.amount || mapping.amount === 'none') &&
+                              (mapping.debit || mapping.credit);
+
+    if (!mapping.date || !mapping.description || !defaultAccount) {
+      alert('Please select a destination account and map Date and Description columns.');
       return;
     }
-    const dateIdx = headers.indexOf(mapping.date);
-    const descIdx = headers.indexOf(mapping.description);
-    const amtIdx  = headers.indexOf(mapping.amount);
-    const refIdx  = mapping.reference && mapping.reference !== 'none' ? headers.indexOf(mapping.reference) : -1;
-    const catIdx  = mapping.category  && mapping.category  !== 'none' ? headers.indexOf(mapping.category)  : -1;
-    const vendIdx = mapping.vendor    && mapping.vendor    !== 'none' ? headers.indexOf(mapping.vendor)    : -1;
+    if (!usingSplitColumns && !mapping.amount) {
+      alert('Please map an Amount column, or use the Debit/Credit split column fields.');
+      return;
+    }
 
-    if (dateIdx === -1 || descIdx === -1 || amtIdx === -1) {
+    const dateIdx  = headers.indexOf(mapping.date);
+    const descIdx  = headers.indexOf(mapping.description);
+    const amtIdx   = (!usingSplitColumns && mapping.amount) ? headers.indexOf(mapping.amount) : -1;
+    const debitIdx = (usingSplitColumns && mapping.debit  && mapping.debit  !== 'none') ? headers.indexOf(mapping.debit)  : -1;
+    const creditIdx= (usingSplitColumns && mapping.credit && mapping.credit !== 'none') ? headers.indexOf(mapping.credit) : -1;
+    const refIdx   = (mapping.reference && mapping.reference !== 'none')
+      ? headers.indexOf(mapping.reference)
+      : -1;
+    const catIdx   = mapping.category && mapping.category !== 'none' ? headers.indexOf(mapping.category) : -1;
+    const vendIdx  = mapping.vendor   && mapping.vendor   !== 'none' ? headers.indexOf(mapping.vendor)   : -1;
+
+    if (dateIdx === -1 || descIdx === -1) {
       alert('Could not find one or more mapped columns. Please re-check your mappings.');
       return;
     }
@@ -352,16 +399,43 @@ export default function CSVImportWizard({ isOpen, onClose, accounts, bankAccount
     const previewData = csvData.map((row, idx) => {
       const rawDate = row[dateIdx] ?? '';
       const rawDesc = row[descIdx] ?? '';
-      const rawAmt  = row[amtIdx]  ?? '';
       const rawRef  = refIdx >= 0 ? (row[refIdx] ?? '') : '';
-      const parsedDate   = normalizeDate(rawDate, mapping.dateFormat);
-      const parsedAmount = parseAmount(rawAmt);
+
+      let parsedAmount = null;
+      if (usingSplitColumns) {
+        // Debit column = money out (negative), Credit column = money in (positive)
+        const rawDebit  = debitIdx  >= 0 ? (row[debitIdx]  ?? '') : '';
+        const rawCredit = creditIdx >= 0 ? (row[creditIdx] ?? '') : '';
+        const debitVal  = parseAmount(rawDebit);
+        const creditVal = parseAmount(rawCredit);
+        if (debitVal !== null && debitVal !== 0) {
+          parsedAmount = -Math.abs(debitVal);   // debit = money out = negative
+        } else if (creditVal !== null && creditVal !== 0) {
+          parsedAmount = Math.abs(creditVal);    // credit = money in = positive
+        } else {
+          parsedAmount = 0; // both blank/zero — row will still be valid if date/desc ok
+        }
+      } else {
+        parsedAmount = parseAmount(row[amtIdx] ?? '');
+      }
+
+      const parsedDate = normalizeDate(rawDate, mapping.dateFormat);
+
+      // Fall back to category, reference, or generic label if description is blank
+      const rawCat = catIdx >= 0 ? (row[catIdx]?.trim() ?? '') : '';
+      const rawVend = vendIdx >= 0 ? (row[vendIdx]?.trim() ?? '') : '';
+      const resolvedDesc = rawDesc.trim()
+        || rawVend
+        || rawCat
+        || rawRef
+        || 'Imported Transaction';
+
       const errors = [];
       if (!parsedDate)           errors.push(`Bad date: "${rawDate}"`);
-      if (parsedAmount === null) errors.push(`Bad amount: "${rawAmt}"`);
-      if (!rawDesc.trim())       errors.push('Missing description');
+      if (parsedAmount === null) errors.push(`Bad amount`);
+      // Description is no longer a failure condition — we always have a fallback
       return {
-        id: idx, date: parsedDate ?? rawDate, description: rawDesc,
+        id: idx, date: parsedDate ?? rawDate, description: resolvedDesc,
         amount: parsedAmount ?? 0, reference: rawRef,
         valid: errors.length === 0, error: errors.join(' | ') || null,
       };
@@ -395,7 +469,7 @@ export default function CSVImportWizard({ isOpen, onClose, accounts, bankAccount
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-white">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-white" aria-describedby={undefined}>
         <DialogHeader>
           <DialogTitle>Import Transactions</DialogTitle>
         </DialogHeader>
@@ -469,13 +543,9 @@ export default function CSVImportWizard({ isOpen, onClose, accounts, bankAccount
               </div>
             )}
 
-            {/* Account pickers — side by side */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
-              {/* Chart-of-accounts destination — goes into transaction lines */}
               <div>
-                <Label>
-                  Ledger Account <span className="text-red-500">*</span>
-                </Label>
+                <Label>Ledger Account <span className="text-red-500">*</span></Label>
                 <Select value={defaultAccount} onValueChange={setDefaultAccount}>
                   <SelectTrigger className="mt-1.5 bg-white">
                     <SelectValue placeholder="Select ledger account" />
@@ -486,16 +556,11 @@ export default function CSVImportWizard({ isOpen, onClose, accounts, bankAccount
                     ))}
                   </SelectContent>
                 </Select>
-                <p className="text-xs text-gray-400 mt-1">
-                  Chart-of-accounts entry these transactions post against.
-                </p>
+                <p className="text-xs text-gray-400 mt-1">Chart-of-accounts entry these transactions post against.</p>
               </div>
 
-              {/* Bank account — stored on import batch for reconciliation tracking */}
               <div>
-                <Label>
-                  Bank Account <span className="text-gray-400">(optional)</span>
-                </Label>
+                <Label>Bank Account <span className="text-gray-400">(optional)</span></Label>
                 <Select value={selectedBankAccount} onValueChange={setSelectedBankAccount}>
                   <SelectTrigger className="mt-1.5 bg-white">
                     <SelectValue placeholder="Select bank account" />
@@ -503,19 +568,14 @@ export default function CSVImportWizard({ isOpen, onClose, accounts, bankAccount
                   <SelectContent>
                     <SelectItem value="none">None</SelectItem>
                     {activeBankAccounts.map(b => (
-                      <SelectItem key={b.id} value={b.id}>
-                        {bankAccountLabel(b)}
-                      </SelectItem>
+                      <SelectItem key={b.id} value={b.id}>{bankAccountLabel(b)}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
-                <p className="text-xs text-gray-400 mt-1">
-                  Links this import to a bank account for reconciliation.
-                </p>
+                <p className="text-xs text-gray-400 mt-1">Links this import to a bank account for reconciliation.</p>
               </div>
             </div>
 
-            {/* Column mappings */}
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label>Date Column <span className="text-red-500">*</span></Label>
@@ -546,12 +606,43 @@ export default function CSVImportWizard({ isOpen, onClose, accounts, bankAccount
               </div>
 
               <div>
-                <Label>Amount Column <span className="text-red-500">*</span></Label>
+                <Label>Amount Column</Label>
                 <Select value={mapping.amount} onValueChange={(v) => setMapping(m => ({...m, amount: v}))}>
-                  <SelectTrigger className="mt-1.5"><SelectValue placeholder="Select column" /></SelectTrigger>
-                  <SelectContent>{headers.map(h => <SelectItem key={h} value={h}>{h}</SelectItem>)}</SelectContent>
+                  <SelectTrigger className="mt-1.5"><SelectValue placeholder="None — use Debit/Credit below" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">None</SelectItem>
+                    {headers.map(h => <SelectItem key={h} value={h}>{h}</SelectItem>)}
+                  </SelectContent>
                 </Select>
-                <p className="text-xs text-gray-400 mt-1">Negative = money out. Handles $, commas, parentheses.</p>
+                <p className="text-xs text-gray-400 mt-1">Single amount column. Negative = money out.</p>
+              </div>
+
+              <div className="col-span-2 grid grid-cols-2 gap-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                <div className="col-span-2">
+                  <p className="text-xs font-medium text-amber-800">
+                    Split Debit/Credit Columns — use these if your bank exports debits and credits separately
+                  </p>
+                </div>
+                <div>
+                  <Label>Debit Column <span className="text-gray-400">(money out)</span></Label>
+                  <Select value={mapping.debit} onValueChange={(v) => setMapping(m => ({...m, debit: v}))}>
+                    <SelectTrigger className="mt-1.5"><SelectValue placeholder="None" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">None</SelectItem>
+                      {headers.map(h => <SelectItem key={h} value={h}>{h}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label>Credit Column <span className="text-gray-400">(money in)</span></Label>
+                  <Select value={mapping.credit} onValueChange={(v) => setMapping(m => ({...m, credit: v}))}>
+                    <SelectTrigger className="mt-1.5"><SelectValue placeholder="None" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">None</SelectItem>
+                      {headers.map(h => <SelectItem key={h} value={h}>{h}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
 
               <div>
@@ -592,9 +683,7 @@ export default function CSVImportWizard({ isOpen, onClose, accounts, bankAccount
 
             <div className="flex gap-3">
               <Button variant="outline" onClick={() => setStep(1)} className="flex-1">Back</Button>
-              <Button onClick={buildPreviewAndReview} className="flex-1 bg-indigo-600 hover:bg-indigo-700">
-                Next
-              </Button>
+              <Button onClick={buildPreviewAndReview} className="flex-1 bg-indigo-600 hover:bg-indigo-700">Next</Button>
             </div>
           </div>
         )}
@@ -685,7 +774,7 @@ export default function CSVImportWizard({ isOpen, onClose, accounts, bankAccount
                                 </span>
                               </SelectItem>
                               {accounts
-                                .filter(a => a.type === (resolution.type || 'expense'))
+                                .filter(a => a.type === (resolution.type || 'expense') && a.id)
                                 .map(a => <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>)
                               }
                             </SelectContent>
