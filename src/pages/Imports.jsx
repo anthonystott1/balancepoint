@@ -543,16 +543,15 @@ const runImport = async ({ sheets, businessId, onProgress, onLog }) => {
 
     // Parse address into components where possible
     const parseAddress = (raw) => {
-      if (!raw) return { line1: null, city: 'Unknown', state: 'XX', zip: '00000' };
+      if (!raw) return { line1: 'N/A', city: 'Unknown', state: 'XX', zip: '00000' };
       const lines = raw.split('\n').map(l => l.trim()).filter(Boolean);
-      const line1 = lines[0] || null;
-      // Try to parse "City ST ZIP" from last line
+      const line1 = lines[0] || 'N/A';
       const lastLine = lines[lines.length - 1] || '';
       const m = lastLine.match(/^(.+?)\s+([A-Z]{2})\s+(\d{5}(?:-\d{4})?)$/);
       if (m) return { line1, city: m[1].trim(), state: m[2], zip: m[3] };
       return { line1, city: 'Unknown', state: 'XX', zip: '00000' };
     };
-
+ 
     for (const v of vendSheet.parsed.vendors) {
       if (existingNames.has(v.full_legal_name.toLowerCase())) continue;
       const addr = parseAddress(v.address);
@@ -562,7 +561,7 @@ const runImport = async ({ sheets, businessId, onProgress, onLog }) => {
           full_legal_name: v.full_legal_name,
           email:           v.email    || null,
           phone:           v.phone    || null,
-          address_line1:   addr.line1 || null,
+          address_line1:   addr.line1,
           city:            addr.city,
           state:           addr.state,
           zip_code:        addr.zip,
