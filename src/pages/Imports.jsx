@@ -49,9 +49,9 @@ import {
   Users, Building2, RotateCcw, Trash2, FileText
 } from 'lucide-react';
 
-// ?????????????????????????????????????????????????????????????????????????????
+// ===============================================================
 // HELPERS
-// ?????????????????????????????????????????????????????????????????????????????
+// ===============================================================
 
 // Strip Excel formula prefix and parse to float
 const parseValue = (v) => {
@@ -78,6 +78,10 @@ const normalizeDate = (raw) => {
   const f = new Date(s);
   return isNaN(f.getTime()) ? null : f.toISOString().split('T')[0];
 };
+
+// Sleep helper -- throttles import transactions so the browser's
+// connection pool doesn't get overwhelmed by rapid-fire Supabase calls
+const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 
 // Classify account type from name
 const ASSET_KW  = ['bank','chase','zions','wells fargo','checking','savings','cash',
@@ -109,9 +113,9 @@ const parseAccountName = (raw) => {
   return { name: s, parent: parts[0], leaf: parts[parts.length - 1] };
 };
 
-// ?????????????????????????????????????????????????????????????????????????????
+// ===============================================================
 // SHEET TYPE DETECTION
-// ?????????????????????????????????????????????????????????????????????????????
+// ===============================================================
 const TYPES = {
   JOURNAL:       'Journal',
   TRIAL_BALANCE: 'Trial Balance',
@@ -140,9 +144,9 @@ const detectType = (sheetName, firstRows) => {
   return TYPES.UNKNOWN;
 };
 
-// ?????????????????????????????????????????????????????????????????????????????
+// ===============================================================
 // PARSERS -- return structured data ready for import
-// ?????????????????????????????????????????????????????????????????????????????
+// ===============================================================
 
 // Returns { accounts: [{name, type, parent, leaf, debit, credit}], companyName }
 const parseTrialBalance = (rows) => {
@@ -320,9 +324,9 @@ const parseJournal = (rows) => {
   return { transactions };
 };
 
-// ?????????????????????????????????????????????????????????????????????????????
+// ===============================================================
 // WORKBOOK PARSER -- dispatches to correct parser per sheet
-// ?????????????????????????????????????????????????????????????????????????????
+// ===============================================================
 const parseWorkbook = (workbook, fileName) => {
   const results = [];
   for (const sheetName of workbook.SheetNames) {
@@ -355,9 +359,9 @@ const parseWorkbook = (workbook, fileName) => {
   return results;
 };
 
-// ?????????????????????????????????????????????????????????????????????????????
+// ===============================================================
 // IMPORT ENGINE
-// ?????????????????????????????????????????????????????????????????????????????
+// ===============================================================
 const runImport = async ({ sheets, businessId, onProgress, onLog }) => {
   const log = (msg, type = 'info') => onLog({ msg, type });
   const totals = { accounts: 0, clients: 0, vendors: 0, employees: 0, transactions: 0, failed: 0 };
@@ -412,10 +416,10 @@ const runImport = async ({ sheets, businessId, onProgress, onLog }) => {
     return await getOrCreate(raw, classifyType(raw));
   };
 
-  // ?? 1. Accounts (Trial Balance) ????????????????????????????????????????????
+  // 1. Accounts (Trial Balance)
   const tbSheet = sheets.find(s => s.type === TYPES.TRIAL_BALANCE && s.selected);
   if (tbSheet) {
-    log(`Creating accounts from Trial Balance?`);
+    log(`Creating accounts from Trial Balance...`);
     await loadExistingAccounts();
 
     const { accounts } = tbSheet.parsed;
@@ -434,7 +438,7 @@ const runImport = async ({ sheets, businessId, onProgress, onLog }) => {
         accountIdMap[key] = data.id;
         totals.accounts++;
       } catch (err) {
-        log(`  ? Account "${acc.name}": ${err.message}`, 'warn');
+        log(`  Account "${acc.name}": ${err.message}`, 'warn');
       }
     }
 
@@ -455,17 +459,17 @@ const runImport = async ({ sheets, businessId, onProgress, onLog }) => {
         accountIdMap[key] = data.id;
         totals.accounts++;
       } catch (err) {
-        log(`  ? Sub-account "${acc.name}": ${err.message}`, 'warn');
+        log(`  Sub-account "${acc.name}": ${err.message}`, 'warn');
       }
     }
 
-    log(`  ? ${totals.accounts} accounts created`, 'success');
+    log(`  ${totals.accounts} accounts created`, 'success');
     onProgress(15);
 
     // Opening balance journal entry
     const withBalances = accounts.filter(a => (a.debit || 0) + (a.credit || 0) > 0);
     if (withBalances.length > 0) {
-      log(`Creating opening balance entry (${withBalances.length} accounts)?`);
+      log(`Creating opening balance entry (${withBalances.length} accounts)...`);
       const obeKey = 'opening balance equity';
       await getOrCreate('Opening Balance Equity', 'equity');
 
@@ -499,18 +503,18 @@ const runImport = async ({ sheets, businessId, onProgress, onLog }) => {
             description: 'QuickBooks Opening Balances', source: 'import', is_cleared: true },
           lines
         );
-        log(`  ? Opening balance entry created`, 'success');
+        log(`  Opening balance entry created`, 'success');
       } catch (err) {
-        log(`  ? Opening balance entry failed: ${err.message}`, 'warn');
+        log(`  Opening balance entry failed: ${err.message}`, 'warn');
       }
     }
   }
   onProgress(25);
 
-  // ?? 2. Clients (Customers) ?????????????????????????????????????????????????
+  // 2. Clients (Customers)
   const custSheet = sheets.find(s => s.type === TYPES.CUSTOMERS && s.selected);
   if (custSheet) {
-    log(`Importing ${custSheet.parsed.clients.length} customers?`);
+    log(`Importing ${custSheet.parsed.clients.length} customers...`);
     const { data: existing = [] } = await supabase
       .from('clients').select('client_name').eq('business_id', businessId);
     const existingNames = new Set(existing.map(c => c.client_name.toLowerCase()));
@@ -526,17 +530,17 @@ const runImport = async ({ sheets, businessId, onProgress, onLog }) => {
         if (error) throw error;
         totals.clients++;
       } catch (err) {
-        log(`  ? Client "${c.client_name}": ${err.message}`, 'warn');
+        log(`  Client "${c.client_name}": ${err.message}`, 'warn');
       }
     }
-    log(`  ? ${totals.clients} clients created`, 'success');
+    log(`  ${totals.clients} clients created`, 'success');
   }
   onProgress(35);
 
-  // ?? 3. Vendors / Contractors ???????????????????????????????????????????????
+  // 3. Vendors / Contractors
   const vendSheet = sheets.find(s => s.type === TYPES.VENDORS && s.selected);
   if (vendSheet) {
-    log(`Importing ${vendSheet.parsed.vendors.length} vendors?`);
+    log(`Importing ${vendSheet.parsed.vendors.length} vendors...`);
     const { data: existing = [] } = await supabase
       .from('contractors').select('full_legal_name').eq('business_id', businessId);
     const existingNames = new Set(existing.map(c => c.full_legal_name.toLowerCase()));
@@ -551,7 +555,7 @@ const runImport = async ({ sheets, businessId, onProgress, onLog }) => {
       if (m) return { line1, city: m[1].trim(), state: m[2], zip: m[3] };
       return { line1, city: 'Unknown', state: 'XX', zip: '00000' };
     };
- 
+
     for (const v of vendSheet.parsed.vendors) {
       if (existingNames.has(v.full_legal_name.toLowerCase())) continue;
       const addr = parseAddress(v.address);
@@ -574,17 +578,17 @@ const runImport = async ({ sheets, businessId, onProgress, onLog }) => {
         if (error) throw error;
         totals.vendors++;
       } catch (err) {
-        log(`  ? Vendor "${v.full_legal_name}": ${err.message}`, 'warn');
+        log(`  Vendor "${v.full_legal_name}": ${err.message}`, 'warn');
       }
     }
-    log(`  ? ${totals.vendors} vendors created`, 'success');
+    log(`  ${totals.vendors} vendors created`, 'success');
   }
   onProgress(45);
 
-  // ?? 4. Employees (as tags) ?????????????????????????????????????????????????
+  // 4. Employees (as tags)
   const empSheet = sheets.find(s => s.type === TYPES.EMPLOYEES && s.selected);
   if (empSheet) {
-    log(`Importing ${empSheet.parsed.employees.length} employees as tags?`);
+    log(`Importing ${empSheet.parsed.employees.length} employees as tags...`);
     const { data: existing = [] } = await supabase
       .from('tags').select('name').eq('business_id', businessId).eq('category', 'other');
     const existingNames = new Set(existing.map(t => t.name.toLowerCase()));
@@ -600,77 +604,113 @@ const runImport = async ({ sheets, businessId, onProgress, onLog }) => {
         created++;
         totals.employees++;
       } catch (err) {
-        log(`  ? Employee tag "${e.name}": ${err.message}`, 'warn');
+        log(`  Employee tag "${e.name}": ${err.message}`, 'warn');
       }
     }
-    log(`  ? ${created} employees saved as tags`, 'success');
+    log(`  ${created} employees saved as tags`, 'success');
   }
   onProgress(50);
 
-  // ?? 5. Transactions (Journal) ??????????????????????????????????????????????
-  const journalSheet = sheets.find(s => s.type === TYPES.JOURNAL && s.selected);
+  // 5. Transactions (Journal)
+  // Guard: only use the first selected Journal sheet -- if multiple are selected
+  // (e.g. Journal + General Ledger both detected as Journal) warn and skip extras
+  const journalSheets = sheets.filter(s => s.type === TYPES.JOURNAL && s.selected);
+  if (journalSheets.length > 1) {
+    log(`Warning: ${journalSheets.length} Journal sheets detected. Only importing the first one (${journalSheets[0].sheetName}). Deselect duplicates to avoid double-importing.`, 'warn');
+  }
+  const journalSheet = journalSheets[0];
+
   if (journalSheet) {
-    // Refresh account map to include anything just created
+    // Refresh account map to include anything just created above
     await loadExistingAccounts();
 
     const { transactions } = journalSheet.parsed;
-    log(`Importing ${transactions.length} transactions?`);
+    log(`Importing ${transactions.length} transactions from "${journalSheet.sheetName}"...`);
 
-    const BATCH = 50;
+    // Throttle constants -- keep browser connection pool healthy
+    const BATCH_SIZE = 10;   // pause every N transactions
+    const BATCH_DELAY = 150; // ms to wait between batches
+
     for (let i = 0; i < transactions.length; i++) {
       const tx = transactions[i];
 
-      // Resolve all account names -> IDs
+      // Resolve all account names to IDs
       const resolvedLines = [];
       for (const line of tx.lines) {
         const id = await resolveAccount(line.account);
         if (!id) {
-          // Last resort -- uncategorized
           const fallback = line.debit > 0
             ? await getOrCreate('Uncategorized Expense', 'expense')
             : await getOrCreate('Uncategorized Income', 'income');
-          if (fallback) resolvedLines.push({ account_id: fallback, debit: line.debit, credit: line.credit, description: tx.memo || tx.name });
+          if (fallback) {
+            resolvedLines.push({
+              account_id: fallback,
+              debit: line.debit,
+              credit: line.credit,
+              description: tx.memo || tx.name || 'Uncategorized',
+            });
+          }
           continue;
         }
-        resolvedLines.push({ account_id: id, debit: line.debit, credit: line.credit,
-                             description: tx.memo || tx.name || tx.txType });
+        resolvedLines.push({
+          account_id: id,
+          debit: line.debit,
+          credit: line.credit,
+          description: tx.memo || tx.name || tx.txType || '',
+        });
       }
 
-      if (resolvedLines.length < 2) { totals.failed++; continue; }
+      if (resolvedLines.length < 2) {
+        totals.failed++;
+        if (totals.failed <= 10) {
+          log(`  TX skipped (${tx.date} "${tx.name}"): only ${resolvedLines.length} line(s) resolved`, 'warn');
+        }
+        continue;
+      }
 
       try {
         const desc = [tx.name, tx.memo].filter(Boolean).join(' -- ') || tx.txType || 'Imported';
         await transactionsAPI.create(
-          { business_id: businessId, transaction_date: tx.date,
-            description: desc, source: 'import', is_cleared: true,
-            reference_number: tx.reference || null },
+          {
+            business_id:      businessId,
+            transaction_date: tx.date,
+            description:      desc,
+            source:           'import',
+            is_cleared:       true,
+            reference_number: tx.reference || null,
+          },
           resolvedLines
         );
         totals.transactions++;
       } catch (err) {
         totals.failed++;
-        if (totals.failed <= 5)
-          log(`  ? TX failed (${tx.date} ${tx.name}): ${err.message}`, 'warn');
+        if (totals.failed <= 10) {
+          log(`  TX failed (${tx.date} "${tx.name}"): ${err.message}`, 'warn');
+        }
       }
 
-      // Progress + yield every batch
-      if ((i + 1) % BATCH === 0) {
-        onProgress(50 + Math.round(((i + 1) / transactions.length) * 48));
-        await new Promise(r => setTimeout(r, 0));
-        log(`  ?${i + 1} / ${transactions.length} transactions`);
+      // Throttle: pause every BATCH_SIZE transactions to let the browser breathe
+      if ((i + 1) % BATCH_SIZE === 0) {
+        const pct = 50 + Math.round(((i + 1) / transactions.length) * 48);
+        onProgress(pct);
+        log(`  ${i + 1} / ${transactions.length} processed (${totals.transactions} succeeded, ${totals.failed} failed)`);
+        await sleep(BATCH_DELAY);
       }
     }
-    log(`  ? ${totals.transactions} transactions created, ${totals.failed} failed`,
-        totals.failed === 0 ? 'success' : 'warn');
+
+    log(
+      `  ${totals.transactions} transactions created, ${totals.failed} failed`,
+      totals.failed === 0 ? 'success' : 'warn'
+    );
   }
 
   onProgress(100);
   return totals;
 };
 
-// ?????????????????????????????????????????????????????????????????????????????
+// ===============================================================
 // TYPE META (colors, icons, labels)
-// ?????????????????????????????????????????????????????????????????????????????
+// ===============================================================
 const TYPE_META = {
   [TYPES.JOURNAL]:       { color: 'amber',  Icon: Receipt,       label: 'Journal / Transactions' },
   [TYPES.TRIAL_BALANCE]: { color: 'violet', Icon: BookOpen,      label: 'Trial Balance / Accounts' },
@@ -680,9 +720,9 @@ const TYPE_META = {
   [TYPES.UNKNOWN]:       { color: 'gray',   Icon: FileText,      label: 'Unknown' },
 };
 
-// ?????????????????????????????????????????????????????????????????????????????
+// ===============================================================
 // COMPONENT
-// ?????????????????????????????????????????????????????????????????????????????
+// ===============================================================
 function ImportsContent() {
   const { currentBusiness } = useBusiness();
   const [step, setStep]         = useState(1);
@@ -701,7 +741,7 @@ function ImportsContent() {
     });
   }, []);
 
-  // ?? File handling ????????????????????????????????????????????????????????
+  // File handling
   const processFiles = (fileList) => {
     const files = Array.from(fileList).filter(f => f.name.match(/\.(xlsx|xls)$/i));
     if (!files.length) return;
@@ -814,7 +854,7 @@ function ImportsContent() {
           })}
         </div>
 
-        {/* ?? Step 1 & 2: Upload + Review (combined -- upload stays visible) ?? */}
+        {/* Step 1 & 2: Upload + Review (combined -- upload stays visible) */}
         {(step === 1 || step === 2) && (
           <div className="space-y-4">
             {/* Drop zone */}
@@ -955,13 +995,13 @@ function ImportsContent() {
           </div>
         )}
 
-        {/* ?? Step 3: Importing ???????????????????????????????????????????? */}
+        {/* Step 3: Importing */}
         {step === 3 && (
           <Card className="border-0 shadow-xl bg-white/80 backdrop-blur">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Loader2 className="w-5 h-5 animate-spin text-indigo-600" />
-                Importing?
+                Importing...
               </CardTitle>
               <CardDescription>Keep this tab open. Large journals may take a few minutes.</CardDescription>
             </CardHeader>
@@ -969,7 +1009,7 @@ function ImportsContent() {
               <Progress value={progress} className="h-2.5" />
               <p className="text-xs text-right text-gray-400">{progress}%</p>
               <div className="bg-gray-950 rounded-xl p-4 max-h-72 overflow-y-auto font-mono text-xs space-y-1">
-                {logs.length === 0 && <p className="text-gray-500">Starting?</p>}
+                {logs.length === 0 && <p className="text-gray-500">Starting...</p>}
                 {logs.map((l, i) => (
                   <p key={i} className={
                     l.type === 'success' ? 'text-emerald-400' :
@@ -983,7 +1023,7 @@ function ImportsContent() {
           </Card>
         )}
 
-        {/* ?? Step 4: Done ????????????????????????????????????????????????? */}
+        {/* Step 4: Done */}
         {step === 4 && result && (
           <Card className="border-0 shadow-xl bg-white/80 backdrop-blur">
             <CardContent className="pt-10 pb-8 text-center space-y-6">
